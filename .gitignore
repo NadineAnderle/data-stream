@@ -1,0 +1,9 @@
+health-data-pipeline/src/main/java/com/example/run command.txt
+health-data-pipeline/logs/
+health-data-pipeline/target/ 
+health-data-pipeline/.vscode
+python/.vscode
+python/.venv
+.vscode
+
+flink*
