@@ -1,8 +1,8 @@
 # Pipeline de Processamento de Dados de Saúde em Tempo Real
 
-Este projeto é parte de uma pesquisa de mestrado focada no processamento de dados de saúde em tempo real, utilizando tecnologias modernas de streaming de dados.
+Este projeto é uma POC focada no processamento de dados de saúde em tempo real, utilizando tecnologias de streaming de dados.
 
-## Objetivo da Pesquisa
+## Objetivo
 
 Desenvolver e avaliar um pipeline de processamento de dados de saúde em tempo real que garanta:
 - Processamento confiável com semântica exactly-once
