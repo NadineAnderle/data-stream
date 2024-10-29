@@ -3,6 +3,14 @@ services:
     image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
 
   kafka:
     image: wurstmeister/kafka
@@ -19,8 +27,17 @@ services:
       KAFKA_CREATE_TOPICS: "health-data:1:1,health-data-dlq:1:1"
       KAFKA_LOG_RETENTION_MINUTES: "10"
       KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: "300000"
+      KAFKA_HEAP_OPTS: "-Xmx512M -Xms256M"
     depends_on:
       - zookeeper
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
 
   kafdrop:
     image: obsidiandynamics/kafdrop
@@ -32,6 +49,14 @@ services:
       SERVER_SERVLET_CONTEXTPATH: "/"
     depends_on:
       - kafka
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.3'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
 
   jobmanager:
     image: flink:latest
@@ -45,12 +70,23 @@ services:
         state.backend: filesystem
         state.checkpoints.dir: file:///opt/flink/checkpoints
         state.savepoints.dir: file:///opt/flink/savepoints
+        jobmanager.memory.process.size: 1024m
+        taskmanager.memory.process.size: 1024m
+        taskmanager.numberOfTaskSlots: 2
     volumes:
       - ./flink-sql-connector-kafka-3.0.2-1.17.jar:/opt/flink/lib/flink-sql-connector-kafka-3.0.2-1.17.jar
       - ./flink-connector-jdbc-3.1.1-1.17.jar:/opt/flink/lib/flink-connector-jdbc-3.1.1-1.17.jar
       - ./postgresql-42.7.1.jar:/opt/flink/lib/postgresql-42.7.1.jar
       - flink-checkpoints:/opt/flink/checkpoints
       - flink-savepoints:/opt/flink/savepoints
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
 
   taskmanager:
     image: flink:latest
@@ -64,12 +100,22 @@ services:
         state.backend: filesystem
         state.checkpoints.dir: file:///opt/flink/checkpoints
         state.savepoints.dir: file:///opt/flink/savepoints
+        taskmanager.memory.process.size: 1024m
+        taskmanager.numberOfTaskSlots: 2
     volumes:
       - ./flink-sql-connector-kafka-3.0.2-1.17.jar:/opt/flink/lib/flink-sql-connector-kafka-3.0.2-1.17.jar
       - ./flink-connector-jdbc-3.1.1-1.17.jar:/opt/flink/lib/flink-connector-jdbc-3.1.1-1.17.jar
       - ./postgresql-42.7.1.jar:/opt/flink/lib/postgresql-42.7.1.jar
       - flink-checkpoints:/opt/flink/checkpoints
       - flink-savepoints:/opt/flink/savepoints
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
 
   postgres:
     image: postgres:latest
@@ -77,11 +123,23 @@ services:
       POSTGRES_USER: health_user
       POSTGRES_PASSWORD: health_password
       POSTGRES_DB: health_db
+      POSTGRES_SHARED_BUFFERS: 128MB
+      POSTGRES_WORK_MEM: 4MB
+      POSTGRES_MAINTENANCE_WORK_MEM: 32MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 384MB
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.7'
+        reservations:
+          memory: 256M
+          cpus: '0.3'
 
 volumes:
   postgres-data:
