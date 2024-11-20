@@ -14,6 +14,9 @@ public class HealthData {
     
     @JsonProperty("oxygen_saturation")
     private double oxygenSaturation;
+
+    @JsonProperty("large_data")
+    private String largeData;
     
     private long timestamp;
 
@@ -32,4 +35,7 @@ public class HealthData {
     
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
+    public String getLargeData() { return largeData; }
+    public void setLargeData(String largeData) { this.largeData = largeData; }
 }
