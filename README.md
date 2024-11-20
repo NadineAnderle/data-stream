@@ -14,20 +14,38 @@ Desenvolver e avaliar um pipeline de processamento de dados de saúde em tempo r
 
 ```mermaid
 flowchart TD
-    P1[Python Producer] -->|Generate Data| K[Kafka Broker]
+    subgraph KafkaCluster
+        K[Kafka Broker]
+    end
+
+    subgraph FlinkCluster
+        JM[JobManager]
+        TM1[TaskManager 1]
+        TM2[TaskManager 2]
+    end
+
+    subgraph PostgreSQL
+        DB[(health_db)]
+    end
+
+    P1[Python Producer] -->|Generate Data| K
     P2[Duplicate Producer] -->|Generate Data| K
-    
-    K -->|Messages| F[Flink Processor]
-    Z[ZooKeeper] -->|Manage| K
-    
-    F -->|Process Stream| D{Deduplication Check}
-    D -->|Duplicate| R[Reject]
-    D -->|Unique| V{Validate Data}
-    
-    V -->|Invalid| DLQ[Dead Letter Queue]
-    V -->|Valid| PG[(PostgreSQL)]
-    
-    KD[Kafdrop] -->|Monitor| K
+
+    K -->|Messages| JM
+
+    JM -->|Distribute Tasks| TM1
+    JM -->|Distribute Tasks| TM2
+
+    TM1 -->|Process Stream| DB
+    TM2 -->|Process Stream| DB
+
+    JM -->|Checkpointing & Recovery| TM1
+    JM -->|Checkpointing & Recovery| TM2
+
+    style KafkaCluster fill:#f9f,stroke:#333,stroke-width:2px
+    style FlinkCluster fill:#bbf,stroke:#333,stroke-width:2px
+    style PostgreSQL fill:#bfb,stroke:#333,stroke-width:2px
+
 ```
 
 ## Stack Tecnológica
@@ -64,7 +82,8 @@ flowchart TD
   "heartRate": 75.0,
   "temperature": 36.8,
   "oxygenSaturation": 98.0,
-  "timestamp": 1645564800000
+  "timestamp": 1645564800000,
+  "large_data": "string"
 }
 ```
 
@@ -104,6 +123,11 @@ java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util
 4. Iniciar gerador de dados:
 ```bash
 python python/duplicate_health_producer.py 
+```
+
+5. Iniciar gerador de dados sem duplicação:
+```bash
+python python/producer.py 
 ```
 
 ## Monitoramento

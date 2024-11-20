@@ -1,27 +1,39 @@
 flowchart TD
-    P1[Python Producer] -->|Generate Data| K[Kafka Broker]
+    subgraph KafkaCluster
+        K[Kafka Broker]
+        subgraph Topic
+            P1[Partition 1]
+            P2[Partition 2]
+        end
+    end
+
+    subgraph FlinkCluster
+        JM[JobManager]
+        TM1[TaskManager 1]
+        TM2[TaskManager 2]
+    end
+
+    subgraph PostgreSQL
+        DB[(health_db)]
+    end
+
+    P1[Python Producer] -->|Generate Data| K
     P2[Duplicate Producer] -->|Generate Data| K
-    
-    K -->|Messages| F[Flink Processor]
-    Z[ZooKeeper] -->|Manage| K
-    
-    F -->|Process Stream| D{Deduplication Check}
-    D -->|Duplicate| R[Reject]
-    D -->|Unique| V{Validate Data}
-    
-    V -->|Invalid| DLQ[Dead Letter Queue]
-    V -->|Valid| PG[(PostgreSQL)]
-    
-    KD[Kafdrop] -->|Monitor| K
-    
-    style P1 fill:#ff9,stroke:#000
-    style P2 fill:#ff9,stroke:#333
-    style K fill:#f96,stroke:#333
-    style Z fill:#f96,stroke:#333
-    style F fill:#58f,stroke:#333
-    style D fill:#58f,stroke:#333
-    style V fill:#58f,stroke:#333
-    style PG fill:#5b5,stroke:#333
-    style DLQ fill:#f96,stroke:#333
-    style KD fill:#f5f,stroke:#333
-    style R fill:#f55,stroke:#333
+
+    K -->|Messages| Topic
+
+    P1 -->|Consume| TM1
+    P2 -->|Consume| TM2
+
+    JM -->|Distribute Tasks| TM1
+    JM -->|Distribute Tasks| TM2
+
+    TM1 -->|Process Stream| DB
+    TM2 -->|Process Stream| DB
+
+    JM -->|Checkpointing & Recovery| TM1
+    JM -->|Checkpointing & Recovery| TM2
+
+    style KafkaCluster fill:#f9f,stroke:#333,stroke-width:2px
+    style FlinkCluster fill:#bbf,stroke:#333,stroke-width:2px
+    style PostgreSQL fill:#bfb,stroke:#333,stroke-width:2px

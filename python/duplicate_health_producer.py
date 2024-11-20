@@ -4,7 +4,6 @@ import time
 import random
 import uuid
 from datetime import datetime
-from faker import Faker
 import logging
 
 # Configure logging
@@ -14,15 +13,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-fake = Faker()
-
 def create_health_data():
+    # Generate a large string to increase the size of the data
+    large_data = "x" * (50)  # 50MB of 'x'
     return {
         "patient_id": str(uuid.uuid4()),
         "heart_rate": random.randint(60, 100),
         "temperature": round(random.uniform(36, 40), 1),
         "oxygen_saturation": random.randint(95, 100),
-        "timestamp": int(time.time() * 1000)
+        "timestamp": int(time.time() * 1000),
+        "large_data": large_data
     }
 
 def should_duplicate():
@@ -33,6 +33,7 @@ def json_serializer(data):
     return json.dumps(data).encode('utf-8')
 
 def create_producer():
+    # Using kafka:9093 for internal Docker network communication
     return KafkaProducer(
         bootstrap_servers=['localhost:9092'],
         value_serializer=json_serializer,
@@ -56,15 +57,15 @@ def send_data(producer, topic, health_data):
         
         record_metadata = future.get(timeout=10)
         
-        logger.info(
-            f"\nMessage successfully persisted:"
-            f"\n→ Topic: {record_metadata.topic}"
-            f"\n→ Partition: {record_metadata.partition}"
-            f"\n→ Offset: {record_metadata.offset}"
-            f"\n→ Timestamp: {datetime.fromtimestamp(record_metadata.timestamp/1000).strftime('%Y-%m-%d %H:%M:%S')}"
-            f"\n→ Data: {json.dumps(health_data, indent=2)}"
-            f"\n{'-'*50}"
-        )
+        #logger.info(
+        #    f"\nMessage successfully persisted:"
+       #     f"\n→ Topic: {record_metadata.topic}"
+        #    f"\n→ Partition: {record_metadata.partition}"
+         #   f"\n→ Offset: {record_metadata.offset}"
+         #   f"\n→ Timestamp: {datetime.fromtimestamp(record_metadata.timestamp/1000).strftime('%Y-%m-%d %H:%M:%S')}"
+         #   f"\n→ Data: {json.dumps(health_data, indent=2)}"
+         #   f"\n{'-'*50}"
+        #)
         
         producer.flush()
         
@@ -96,7 +97,7 @@ def main():
                         # Send the exact same data again
                         send_data(producer, topic, health_data)
                     
-                    time.sleep(1)  # Generate data every second
+                    #time.sleep(1)  # Generate data every second
                     
                 except Exception as e:
                     logger.error(f"Error producing health data: {e}")

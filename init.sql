@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS health_records (
     temperature DOUBLE PRECISION NOT NULL,
     oxygen_saturation DOUBLE PRECISION NOT NULL,
     timestamp TIMESTAMP NOT NULL,
+    large_data TEXT NOT NULL,  -- Added large_data field
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     -- Composite primary key to ensure uniqueness of patient readings at a specific time
     PRIMARY KEY (patient_id, timestamp)
