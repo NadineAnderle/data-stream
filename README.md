@@ -109,16 +109,8 @@ mvn clean package
 cd ..
 ```
 
-3. Executar pipeline:
-```bash
-java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED -jar target/health-data-pipeline-1.0-SNAPSHOT.jar \
-  --kafka.bootstrap.servers localhost:9092 \
-  --postgres.host localhost \
-  --postgres.port 5432 \
-  --postgres.db health_db \
-  --postgres.user health_user \
-  --postgres.password health_password
-```
+3. Submissão Automática:
+A pipeline agora é automaticamente submetida ao Flink. Você pode acompanhar a execução através da UI do Flink em [http://localhost:8081](http://localhost:8081) ou via CLI.
 
 4. Iniciar gerador de dados:
 ```bash
